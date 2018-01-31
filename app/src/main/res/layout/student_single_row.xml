@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/student_icon"
+        android:textColor="#ecf0f1"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="15dp"
+        android:background="@drawable/round_black"
+        android:text="S"
+        android:gravity="center"
+        android:textSize="18sp"
+        />
+
+    <TextView
+        android:id="@+id/student_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/student_icon"
+        android:layout_toEndOf="@+id/student_icon"
+        android:layout_toRightOf="@+id/student_icon"
+        android:textSize="18sp"
+        android:textColor="#34495e"
+        android:text="Shadat Tonmoy" />
+
+    <TextView
+        android:id="@+id/student_reg_no"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/student_name"
+        android:layout_alignLeft="@+id/student_name"
+        android:layout_below="@+id/student_name"
+        android:text="2014331070" />
+
+    <TextView
+        android:id="@+id/student_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/student_reg_no"
+        android:layout_alignLeft="@+id/student_reg_no"
+        android:layout_below="@+id/student_reg_no"
+        android:text="shadat.tonmoy@gmail.com" />
+</RelativeLayout>

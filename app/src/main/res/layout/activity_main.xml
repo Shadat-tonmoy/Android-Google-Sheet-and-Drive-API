@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="shadattonmoy.googlesheetapi.MainActivity">
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="15dp"
+        android:background="@color/colorAccent"
+        android:text="Call API"
+        android:textColor="#ffffff"
+        android:textSize="18sp"
+        android:layout_alignParentBottom="true"/>
+
+    <TextView
+        android:id="@+id/nothing_found_msg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap Call Api To Fetch Data"
+        android:layout_centerInParent="true"
+        android:textSize="18sp"
+        android:textColor="#95a5a6"
+        />
+
+    <ListView
+        android:id="@+id/spread_sheet_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="60dp"
+        ></ListView>
+
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/button"
+        android:layout_margin="10dp">
+
+        <TextView
+            android:id="@+id/debugView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hello World!" />
+    </ScrollView>
+
+
+</RelativeLayout>

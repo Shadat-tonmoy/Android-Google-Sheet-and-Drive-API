@@ -28,25 +28,24 @@
         android:textColor="#95a5a6"
         />
 
-    <ListView
+    <GridView
         android:id="@+id/spread_sheet_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="60dp"
-        ></ListView>
+        android:numColumns="3"
+        android:stretchMode="columnWidth"
+        ></GridView>
 
-    <ScrollView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/button"
-        android:layout_margin="10dp">
+    <TextView
+        android:id="@+id/debugView"
+        android:layout_width="0dp"
+        android:layout_height="0dp" />
 
-        <TextView
-            android:id="@+id/debugView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hello World!" />
-    </ScrollView>
+
+
+
+
 
 
 </RelativeLayout>

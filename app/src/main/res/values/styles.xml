@@ -8,4 +8,15 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="homeIcon">
+        <item name="android:padding">10dp</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+
+    <style name="homeScreenText">
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">10dp</item>
+    </style>
+
 </resources>

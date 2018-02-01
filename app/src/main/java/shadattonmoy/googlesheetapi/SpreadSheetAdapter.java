@@ -23,7 +23,7 @@ import java.util.List;
 
 public class SpreadSheetAdapter extends ArrayAdapter<SpreadSheet> {
 
-    private TextView spreadSheetTitleView;
+    private TextView spreadSheetTitleView,spreadSheetPropertiesView;
     private ImageView spreadSheetLogoView;
     public SpreadSheetAdapter(@NonNull Context context, @LayoutRes int resource, @IdRes int textViewResourceId, @NonNull List<SpreadSheet> objects) {
         super(context, resource, textViewResourceId, objects);
@@ -46,6 +46,7 @@ public class SpreadSheetAdapter extends ArrayAdapter<SpreadSheet> {
         final SpreadSheet spreadSheet= getItem(position);
         spreadSheetTitleView = (TextView) row.findViewById(R.id.spread_title);
         spreadSheetLogoView = (ImageView) row.findViewById(R.id.spread_sheet_logo);
+        //spreadSheetPropertiesView = (TextView) row.findViewById(R.id.properties);
 
 
 
@@ -53,6 +54,11 @@ public class SpreadSheetAdapter extends ArrayAdapter<SpreadSheet> {
         * get the specific attributes for a particular course
         * */
         String spreadSheetTitle = spreadSheet.getName();
+        if(spreadSheetTitle.length()>10)
+        {
+            spreadSheetTitle = spreadSheetTitle.substring(0,8)+"....";
+        }
+        //String properties = spreadSheet.getProperties();
 
 
         /*
@@ -60,6 +66,7 @@ public class SpreadSheetAdapter extends ArrayAdapter<SpreadSheet> {
         * */
         spreadSheetTitleView.setText(spreadSheetTitle);
         spreadSheetLogoView.setImageResource(R.drawable.spreadsheeticon);
+        //spreadSheetPropertiesView.setText(properties);
         return row;
     }
 }

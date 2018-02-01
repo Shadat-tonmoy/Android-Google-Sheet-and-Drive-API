@@ -32,17 +32,22 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 import com.google.api.services.drive.DriveScopes;
@@ -53,7 +58,7 @@ public class MainActivity extends AppCompatActivity
     private TextView debugView,nothingFoundMsg;
     private Button mCallApiButton;
     ProgressDialog mProgress;
-    private ListView spreadSheetList;
+    private GridView spreadSheetList;
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
     static final int REQUEST_AUTHORIZATION = 1001;
@@ -334,7 +339,13 @@ public class MainActivity extends AppCompatActivity
             List<File> files = sheets.getFiles();
             if (files != null) {
                 for (File file : files) {
-                    spreadsheets.add(new SpreadSheet(file.getName(),file.getId()));
+                    Map<String,String> properties = file.getProperties();
+
+                    SpreadSheet spreadSheet = new SpreadSheet(file.getName(),file.getId());
+                    //Log.e("Props : ",properties.size()+"");
+                    //spreadSheet.setProperties(properties.toString());
+                    spreadsheets.add(spreadSheet);
+
                 }
             }
             return spreadsheets;
@@ -428,7 +439,7 @@ public class MainActivity extends AppCompatActivity
     {
         debugView = (TextView) findViewById(R.id.debugView);
         mCallApiButton = (Button) findViewById(R.id.button);
-        spreadSheetList = (ListView) findViewById(R.id.spread_sheet_list);
+        spreadSheetList = (GridView) findViewById(R.id.spread_sheet_list);
         nothingFoundMsg = (TextView) findViewById(R.id.nothing_found_msg);
 
         // Initialize credentials and service object.

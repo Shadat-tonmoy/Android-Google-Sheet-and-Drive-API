@@ -5,7 +5,7 @@ package shadattonmoy.googlesheetapi;
  */
 
 public class SpreadSheet {
-    private String name,id;
+    private String name,id,properties;
 
     public SpreadSheet(String name, String id) {
         this.name = name;
@@ -26,5 +26,13 @@ public class SpreadSheet {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getProperties() {
+        return properties;
+    }
+
+    public void setProperties(String properties) {
+        this.properties = properties;
     }
 }

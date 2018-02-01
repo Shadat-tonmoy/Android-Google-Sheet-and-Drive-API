@@ -32,6 +32,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
@@ -48,6 +49,7 @@ public class SheetActivity extends AppCompatActivity
 
     //private TextView debugView,nothingFoundMsg;
     //private Button mCallApiButton;
+    private TextView totalSheetView;
     ProgressDialog mProgress;
     private ListView spreadSheetDataList;
     private String sheetId;
@@ -250,7 +252,7 @@ public class SheetActivity extends AppCompatActivity
      * An asynchronous task that handles the Google Sheets API call.
      * Placing the API calls in their own task ensures the UI stays responsive.
      */
-    private class MakeRequestTask extends AsyncTask<Void, Void, List<Student>> {
+    private class MakeRequestTask extends AsyncTask<Void, Void, SpreadSheetData> {
         private Sheets sheetService = null;
         protected Drive driveService = null;
 
@@ -274,7 +276,7 @@ public class SheetActivity extends AppCompatActivity
          * @param params no parameters needed for this task.
          */
         @Override
-        protected List<Student> doInBackground(Void... params) {
+        protected SpreadSheetData doInBackground(Void... params) {
             try {
                 return getStudent(sheetId);
             } catch (Exception e) {
@@ -306,8 +308,11 @@ public class SheetActivity extends AppCompatActivity
          * @return List of names and majors
          * @throws IOException
          */
-        private List<Student> getStudent(String spreadSheetId) throws IOException {
-            String range = "Sheet 1!A2:C";
+        private SpreadSheetData getStudent(String spreadSheetId) throws IOException {
+            SpreadSheetData spreadSheetData = new SpreadSheetData();
+            List<Sheet> sheetList = this.sheetService.spreadsheets().get(spreadSheetId).execute().getSheets();
+            String sheetName = sheetList.get(1).getProperties().getTitle();
+            String range = sheetName+"!A2:C";
             List<Student> results = new ArrayList<Student>();
             ValueRange response = this.sheetService.spreadsheets().values()
                     .get(spreadSheetId, range)
@@ -330,7 +335,9 @@ public class SheetActivity extends AppCompatActivity
                     results.add(new Student(name,regNo,email));
                 }
             }
-            return results;
+            spreadSheetData.setSheetList(sheetList);
+            spreadSheetData.setStudentList(results);
+            return spreadSheetData;
         }
 
 
@@ -342,14 +349,22 @@ public class SheetActivity extends AppCompatActivity
         }
 
         @Override
-        protected void onPostExecute(List<Student> output) {
+        protected void onPostExecute(SpreadSheetData spreadSheetData) {
             mProgress.hide();
+            List<Student> output = spreadSheetData.getStudentList();
+            List<Sheet> sheetList = spreadSheetData.getSheetList();
             if (output == null || output.size() == 0) {
                 //nothingFoundMsg.setText("No results returned.");
             } else {
                 //nothingFoundMsg.setVisibility(View.GONE);
                 StudentAdapter studentAdapter = new StudentAdapter(SheetActivity.this,R.layout.student_single_row,R.id.student_icon,output);
                 spreadSheetDataList.setAdapter(studentAdapter);
+                String totalSheetsText = "";
+                for(int i=0;i<sheetList.size();i++)
+                {
+                    totalSheetsText+=sheetList.get(i).getProperties().getTitle()+" ";
+                }
+                totalSheetView.setText(totalSheetsText);
 //                String outputText = "";
 //                for(int i=0;i<output.size();i++)
 //                {
@@ -387,6 +402,7 @@ public class SheetActivity extends AppCompatActivity
         //debugView = (TextView) findViewById(R.id.debugView);
         //mCallApiButton = (Button) findViewById(R.id.button);
         spreadSheetDataList= (ListView) findViewById(R.id.spread_sheet_data_list);
+        totalSheetView = (TextView) findViewById(R.id.total_sheet_view);
         //nothingFoundMsg = (TextView) findViewById(R.id.nothing_found_msg);
 
         // Initialize credentials and service object.

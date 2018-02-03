@@ -10,11 +10,9 @@ import java.util.List;
 
 public class SpreadSheetData {
     private List<Student> studentList;
-    private List<Sheet> sheetList;
 
-    public SpreadSheetData(List<Student> studentList, List<Sheet> sheetList) {
+    public SpreadSheetData(List<Student> studentList) {
         this.studentList = studentList;
-        this.sheetList = sheetList;
     }
 
     public SpreadSheetData() {
@@ -29,11 +27,4 @@ public class SpreadSheetData {
         this.studentList = studentList;
     }
 
-    public List<Sheet> getSheetList() {
-        return sheetList;
-    }
-
-    public void setSheetList(List<Sheet> sheetList) {
-        this.sheetList = sheetList;
-    }
 }

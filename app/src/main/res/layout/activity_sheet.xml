@@ -8,15 +8,16 @@
     tools:context="shadattonmoy.googlesheetapi.SheetActivity">
 
     <TextView
-        android:id="@+id/total_sheet_view"
+        android:id="@+id/nothing_found_msg"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"/>
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:textSize="24sp"
+        android:visibility="gone"/>
 
     <ListView
-        android:layout_below="@id/total_sheet_view"
+        android:layout_below="@id/nothing_found_msg"
         android:id="@+id/spread_sheet_data_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"></ListView>
-
 </RelativeLayout>

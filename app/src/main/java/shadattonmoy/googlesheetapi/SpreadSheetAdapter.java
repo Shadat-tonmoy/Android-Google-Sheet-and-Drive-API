@@ -1,72 +1,77 @@
 package shadattonmoy.googlesheetapi;
 
 import android.content.Context;
-import android.provider.ContactsContract;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.CheckedOutputStream;
+
+import static java.security.AccessController.getContext;
 
 /**
- * Created by Shadat Tonmoy on 2/1/2018.
+ * Created by Shadat Tonmoy on 2/3/2018.
  */
 
-public class SpreadSheetAdapter extends ArrayAdapter<SpreadSheet> {
+public class SpreadSheetAdapter extends BaseAdapter {
 
-    private TextView spreadSheetTitleView,spreadSheetPropertiesView;
-    private ImageView spreadSheetLogoView;
-    public SpreadSheetAdapter(@NonNull Context context, @LayoutRes int resource, @IdRes int textViewResourceId, @NonNull List<SpreadSheet> objects) {
-        super(context, resource, textViewResourceId, objects);
+    public class ViewHolder {
+        TextView spreadSheetTitle;
+        ImageView spreadSheetIcon;
     }
 
-    @NonNull
+    private Context context;
+    private List<SpreadSheet> spreadSheets;
+    SpreadSheetAdapter(Context context, List<SpreadSheet> spreadSheets)
+    {
+        this.context = context;
+        this.spreadSheets = spreadSheets;
+    }
     @Override
-    public View getView(int position, @Nullable final View convertView, @NonNull ViewGroup parent) {
+    public int getCount() {
+        return spreadSheets.size();
+    }
 
-        View row = convertView;
-        if(row==null)
+    @Override
+    public Object getItem(int position) {
+        return spreadSheets.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        View cell = convertView;
+        ViewHolder viewHolder;
+        if(cell==null)
         {
-            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            row = inflater.inflate(R.layout.spreadsheet_single_row,parent,false);
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            cell = inflater.inflate(R.layout.spreadsheet_single_row,parent,false);
+            viewHolder = new ViewHolder();
+            viewHolder.spreadSheetTitle= (TextView) cell.findViewById(R.id.spread_title);
+            viewHolder.spreadSheetIcon = (ImageView) cell.findViewById(R.id.spread_sheet_logo);
+            cell.setTag(viewHolder);
         }
-
-        /*
-        * find views by their IDs
-        * */
-        final SpreadSheet spreadSheet= getItem(position);
-        spreadSheetTitleView = (TextView) row.findViewById(R.id.spread_title);
-        spreadSheetLogoView = (ImageView) row.findViewById(R.id.spread_sheet_logo);
-        //spreadSheetPropertiesView = (TextView) row.findViewById(R.id.properties);
-
-
-
-        /*
-        * get the specific attributes for a particular course
-        * */
-        String spreadSheetTitle = spreadSheet.getName();
+        else
+        {
+            viewHolder = (ViewHolder) convertView.getTag();
+        }
+        String spreadSheetTitle = spreadSheets.get(position).getName();
         if(spreadSheetTitle.length()>10)
         {
             spreadSheetTitle = spreadSheetTitle.substring(0,8)+"....";
         }
-        //String properties = spreadSheet.getProperties();
+        viewHolder.spreadSheetIcon.setImageResource(R.drawable.spreadsheeticon);
+        viewHolder.spreadSheetTitle.setText(spreadSheetTitle);
 
-
-        /*
-        * set the attributes like text or clicklistener to the specific view/textview
-        * */
-        spreadSheetTitleView.setText(spreadSheetTitle);
-        spreadSheetLogoView.setImageResource(R.drawable.spreadsheeticon);
-        //spreadSheetPropertiesView.setText(properties);
-        return row;
+        return cell;
     }
 }

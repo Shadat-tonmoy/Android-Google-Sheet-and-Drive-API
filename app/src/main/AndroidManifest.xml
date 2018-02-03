@@ -20,7 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SheetActivity"></activity>
+        <activity android:name=".SheetActivity" />
+        <activity android:name=".DynamicTabActivity"></activity>
     </application>
 
 </manifest>

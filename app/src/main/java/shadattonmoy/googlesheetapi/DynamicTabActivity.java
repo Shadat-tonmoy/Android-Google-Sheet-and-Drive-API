@@ -2,8 +2,11 @@ package shadattonmoy.googlesheetapi;
 
 import android.Manifest;
 import android.accounts.AccountManager;
+import android.app.ActionBar;
 import android.app.Dialog;
+import android.app.LocalActivityManager;
 import android.app.ProgressDialog;
+import android.app.TabActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,10 +16,16 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AnalogClock;
 import android.widget.Button;
+import android.widget.GridView;
 import android.widget.ListView;
+import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -27,7 +36,6 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecovera
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
@@ -37,47 +45,120 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class SheetActivity extends AppCompatActivity
+public class DynamicTabActivity extends AppCompatActivity
         implements EasyPermissions.PermissionCallbacks{
 
-
-    //private TextView debugView,nothingFoundMsg;
-    //private Button mCallApiButton;
-    private TextView totalSheetView;
+    private TextView debugView,nothingFoundMsg;
+    private Button mCallApiButton;
     ProgressDialog mProgress;
-    private ListView spreadSheetDataList;
+    private GridView spreadSheetList;
     private String sheetId;
+    private ListView spreadSheetDataList;
+    private TextView totalSheetView;
+    private TabHost tabs;
+    private List<Sheet> sheetList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sheet);
+        setContentView(R.layout.activity_dynamic_tab);
+        getSupportActionBar().hide();
         sheetId = getIntent().getStringExtra("ID");
-        initialize();
+        //sheetId = "1kv3frDlUjR0uAiYFY3Fo5pgm_vxpU-yoq_0yUpP5POs";
+        init();
         getResultsFromApi();
 
     }
 
 
+
+    public void init()
+    {
+
+        spreadSheetDataList= (ListView) findViewById(R.id.spread_sheet_data_list);
+        nothingFoundMsg = (TextView) findViewById(R.id.nothing_found_msg);
+        mProgress = new ProgressDialog(this);
+        mProgress.setMessage("Please Wait....");
+        mProgress.setCancelable(false);
+    }
+
+    public void createTab(List<SpreadSheetData> spreadSheetDataList)
+    {
+        tabs=(TabHost)findViewById(R.id.tabhost);
+        tabs.setup();
+        Log.e("Number of Sheets ","S : "+sheetList.size());
+        for(int i=0;i<sheetList.size();i++)
+        {
+            String title = sheetList.get(i).getProperties().getTitle();
+            TabHost.TabSpec spec=tabs.newTabSpec(title);
+
+            List<Student> studentList = spreadSheetDataList.get(i).getStudentList();
+            Toast.makeText(DynamicTabActivity.this,"List Size is "+studentList.size()+" For i = "+i,Toast.LENGTH_SHORT).show();
+            if(studentList.size()>0)
+                spec.setContent(new TabCreator(studentList));
+            else {
+                nothingFoundMsg.setVisibility(View.VISIBLE);
+                nothingFoundMsg.setText("Sorry!!! Nothing Found.");
+                spec.setContent(R.id.nothing_found_msg);
+            }
+
+            spec.setIndicator(title);
+            tabs.addTab(spec);
+        }
+        tabs.setCurrentTab(0);
+    }
+
+    class TabCreator implements TabHost.TabContentFactory{
+        private List<Student> studentList;
+        TabCreator(List<Student> studentList)
+        {
+            this.studentList = studentList;
+        }
+
+        @Override
+        public View createTabContent(String tag) {
+            ListView listView = new ListView(DynamicTabActivity.this);
+            StudentAdapter studentAdapter = new StudentAdapter(DynamicTabActivity.this,R.layout.student_single_row,R.id.student_icon,  studentList);
+            listView.setAdapter(studentAdapter);
+            return listView;
+        }
+    }
+
+
+    /**
+     * Attempt to call the API, after verifying that all the preconditions are
+     * satisfied. The preconditions are: Google Play Services installed, an
+     * account was selected and the device currently has online access. If any
+     * of the preconditions are not satisfied, the app will prompt the user as
+     * appropriate.
+     */
     private void getResultsFromApi() {
         if (! isGooglePlayServicesAvailable()) {
             acquireGooglePlayServices();
         } else if (MainActivity.mCredential.getSelectedAccountName() == null) {
             chooseAccount();
         } else if (! isDeviceOnline()) {
-            //debugView.setText("No network connection available.");
+            debugView.setText("No network connection available.");
         } else {
-            new SheetActivity.MakeRequestTask(MainActivity.mCredential).execute();
+            new DynamicTabActivity.MakeRequestTask(MainActivity.mCredential).execute();
         }
     }
 
-
-
+    /**
+     * Attempts to set the account used with the API credentials. If an account
+     * name was previously saved it will use that one; otherwise an account
+     * picker dialog will be shown to the user. Note that the setting the
+     * account to use with the credentials object requires the app to have the
+     * GET_ACCOUNTS permission, which is requested here if it is not already
+     * present. The AfterPermissionGranted annotation indicates that this
+     * function will be rerun automatically whenever the GET_ACCOUNTS permission
+     * is granted.
+     */
     @AfterPermissionGranted(MainActivity.REQUEST_PERMISSION_GET_ACCOUNTS)
     private void chooseAccount() {
         if (EasyPermissions.hasPermissions(
@@ -241,18 +322,17 @@ public class SheetActivity extends AppCompatActivity
             final int connectionStatusCode) {
         GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
         Dialog dialog = apiAvailability.getErrorDialog(
-                SheetActivity.this,
+                DynamicTabActivity.this,
                 connectionStatusCode,
                 MainActivity.REQUEST_GOOGLE_PLAY_SERVICES);
         dialog.show();
     }
 
-
     /**
      * An asynchronous task that handles the Google Sheets API call.
      * Placing the API calls in their own task ensures the UI stays responsive.
      */
-    private class MakeRequestTask extends AsyncTask<Void, Void, SpreadSheetData> {
+    private class MakeRequestTask extends AsyncTask<Void, Void, List<SpreadSheetData> > {
         private Sheets sheetService = null;
         protected Drive driveService = null;
 
@@ -276,7 +356,7 @@ public class SheetActivity extends AppCompatActivity
          * @param params no parameters needed for this task.
          */
         @Override
-        protected SpreadSheetData doInBackground(Void... params) {
+        protected List<SpreadSheetData> doInBackground(Void... params) {
             try {
                 return getStudent(sheetId);
             } catch (Exception e) {
@@ -287,86 +367,62 @@ public class SheetActivity extends AppCompatActivity
         }
 
 
-
-
-        private List<SpreadSheet> getSpreadSheets() throws IOException {
-
-            List<SpreadSheet> spreadsheets = new ArrayList<SpreadSheet>();
-            FileList sheets = driveService.files().list().setQ("mimeType = 'application/vnd.google-apps.spreadsheet'").execute();
-            List<File> files = sheets.getFiles();
-            if (files != null) {
-                for (File file : files) {
-                    spreadsheets.add(new SpreadSheet(file.getName(),file.getId()));
-                }
-            }
-            return spreadsheets;
-        }
-
-        /**
-         * Fetch a list of names and majors of students in a sample spreadsheet:
-         * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-         * @return List of names and majors
-         * @throws IOException
-         */
-        private SpreadSheetData getStudent(String spreadSheetId) throws IOException {
-            SpreadSheetData spreadSheetData = new SpreadSheetData();
-            List<Sheet> sheetList = this.sheetService.spreadsheets().get(spreadSheetId).execute().getSheets();
-            String sheetName = sheetList.get(1).getProperties().getTitle();
-            String range = sheetName+"!A2:C";
-            List<Student> results = new ArrayList<Student>();
-            ValueRange response = this.sheetService.spreadsheets().values()
-                    .get(spreadSheetId, range)
-                    .execute();
-            List<List<Object>> values = response.getValues();
-            if (values != null) {
-                for (List row : values) {
-                    String name = "Name not available!";
-                    String regNo = "Reg. No not available";
-                    String email = "Email not available";
-                    for(int i=0;i<row.size();i++)
-                    {
-                        if(i==0)
-                            regNo = row.get(i).toString();
-                        else if(i==1)
-                            name = row.get(i).toString();
-                        else if(i==2)
-                            email = row.get(i).toString();
+        private List<SpreadSheetData> getStudent(String spreadSheetId) throws IOException {
+            List<Sheet> sheetList1 = this.sheetService.spreadsheets().get(spreadSheetId).execute().getSheets();
+            sheetList = sheetList1;
+            List<SpreadSheetData> spreadSheetDataList = new ArrayList<SpreadSheetData>();
+            for(int k=0;k<sheetList.size();k++)
+            {
+                String sheetName = sheetList.get(k).getProperties().getTitle();
+                Log.e("Sheet Name ",sheetName);
+                SpreadSheetData spreadSheetData = new SpreadSheetData();
+                String range = sheetName+"!A2:C";
+                List<Student> results = new ArrayList<Student>();
+                ValueRange response = this.sheetService.spreadsheets().values()
+                        .get(spreadSheetId, range)
+                        .execute();
+                List<List<Object>> values = response.getValues();
+                if (values != null) {
+                    for (List row : values) {
+                        String name = "Name not available!";
+                        String regNo = "Reg. No not available";
+                        String email = "Email not available";
+                        for(int i=0;i<row.size();i++)
+                        {
+                            if(i==0)
+                                regNo = row.get(i).toString();
+                            else if(i==1)
+                                name = row.get(i).toString();
+                            else if(i==2)
+                                email = row.get(i).toString();
+                        }
+                        results.add(new Student(name,regNo,email));
                     }
-                    results.add(new Student(name,regNo,email));
                 }
+                //spreadSheetData.setSheetList(sheetList);
+                spreadSheetData.setStudentList(results);
+                spreadSheetDataList.add(spreadSheetData);
             }
-            //spreadSheetData.setSheetList(sheetList);
-            spreadSheetData.setStudentList(results);
-            return spreadSheetData;
+            return spreadSheetDataList;
+
         }
 
 
 
         @Override
         protected void onPreExecute() {
-            //debugView.setText("");
+//            debugView.setText("");
             mProgress.show();
         }
 
         @Override
-        protected void onPostExecute(SpreadSheetData spreadSheetData) {
+        protected void onPostExecute(List<SpreadSheetData> spreadSheetData) {
             mProgress.hide();
-            List<Student> output = spreadSheetData.getStudentList();
-            //List<Sheet> sheetList = spreadSheetData.getSheetList();
-            if (output == null || output.size() == 0) {
-                //nothingFoundMsg.setText("No results returned.");
+            if (spreadSheetData == null || spreadSheetData.size() == 0) {
+                Toast.makeText(DynamicTabActivity.this,"Null",Toast.LENGTH_SHORT).show();
+                nothingFoundMsg.setText("No results returned.");
             } else {
-                //nothingFoundMsg.setVisibility(View.GONE);
-                StudentAdapter studentAdapter = new StudentAdapter(SheetActivity.this,R.layout.student_single_row,R.id.student_icon,output);
-                spreadSheetDataList.setAdapter(studentAdapter);
-                String totalSheetsText = "";
-//                String outputText = "";
-//                for(int i=0;i<output.size();i++)
-//                {
-//                    SpreadSheet currentSpreadSheet = output.get(i);
-//                    outputText+="Title : "+currentSpreadSheet.getName()+"\nID : "+currentSpreadSheet.getId()+"\n\n\n";
-//                }
-//                debugView.setText(outputText);
+                createTab(spreadSheetData);
             }
         }
 
@@ -383,28 +439,18 @@ public class SheetActivity extends AppCompatActivity
                             ((UserRecoverableAuthIOException) mLastError).getIntent(),
                             MainActivity.REQUEST_AUTHORIZATION);
                 } else {
-                    //debugView.setText("The following error occurred:\n"
-                      //      + mLastError.getMessage());
+                    nothingFoundMsg.setText("The following error occurred:\n"
+                           + mLastError.getMessage());
                 }
             } else {
-                //debugView.setText("Request cancelled.");
+                nothingFoundMsg.setText("Request cancelled.");
             }
         }
     }
 
-    private void initialize()
-    {
-        //debugView = (TextView) findViewById(R.id.debugView);
-        //mCallApiButton = (Button) findViewById(R.id.button);
-        spreadSheetDataList= (ListView) findViewById(R.id.spread_sheet_data_list);
-        //nothingFoundMsg = (TextView) findViewById(R.id.nothing_found_msg);
 
-        // Initialize credentials and service object.
-//        mCredential = GoogleAccountCredential.usingOAuth2(
-//                getApplicationContext(), Arrays.asList(MainActivity.SCOPES))
-//                .setBackOff(new ExponentialBackOff());
 
-        mProgress = new ProgressDialog(this);
-        mProgress.setMessage("Please Wait....");
-    }
+
+
+
 }

@@ -15,10 +15,9 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
-import com.google.api.services.sheets.v4.model.*;
+
 import android.Manifest;
 import android.accounts.AccountManager;
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -30,21 +29,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
-import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -342,39 +334,12 @@ public class MainActivity extends AppCompatActivity
                     Map<String,String> properties = file.getProperties();
 
                     SpreadSheet spreadSheet = new SpreadSheet(file.getName(),file.getId());
-                    //Log.e("Props : ",properties.size()+"");
-                    //spreadSheet.setProperties(properties.toString());
                     spreadsheets.add(spreadSheet);
 
                 }
             }
             return spreadsheets;
         }
-
-        /**
-         * Fetch a list of names and majors of students in a sample spreadsheet:
-         * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-         * @return List of names and majors
-         * @throws IOException
-         */
-        private List<String> getDataFromSheet() throws IOException {
-            String spreadsheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms";
-            String range = "Class Data!A2:E";
-            List<String> results = new ArrayList<String>();
-            ValueRange response = this.sheetService.spreadsheets().values()
-                    .get(spreadsheetId, range)
-                    .execute();
-            List<List<Object>> values = response.getValues();
-            if (values != null) {
-                results.add("Name, Major");
-                for (List row : values) {
-                    results.add(row.get(0) + ", " + row.get(4));
-                }
-            }
-            return results;
-        }
-
-
 
         @Override
         protected void onPreExecute() {
@@ -389,27 +354,21 @@ public class MainActivity extends AppCompatActivity
                 nothingFoundMsg.setText("No results returned.");
             } else {
                 nothingFoundMsg.setVisibility(View.GONE);
-                SpreadSheetAdapter spreadSheetAdapter = new SpreadSheetAdapter(MainActivity.this,R.layout.spreadsheet_single_row,R.id.spread_sheet_logo,output);
+                //SpreadSheetAdapter spreadSheetAdapter = new SpreadSheetAdapter(MainActivity.this,R.layout.spreadsheet_single_row,R.id.spread_sheet_logo,output);
+                SpreadSheetAdapter spreadSheetAdapter = new SpreadSheetAdapter(MainActivity.this, output);
                 spreadSheetList.setAdapter(spreadSheetAdapter);
 
                 spreadSheetList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         SpreadSheet currentSheet = (SpreadSheet) parent.getItemAtPosition(position);
-                        Intent intent = new Intent(MainActivity.this,SheetActivity.class);
+                        Intent intent = new Intent(MainActivity.this,DynamicTabActivity.class);
                         intent.putExtra("ID",currentSheet.getId());
                         startActivity(intent);
 
 
                     }
                 });
-//                String outputText = "";
-//                for(int i=0;i<output.size();i++)
-//                {
-//                    SpreadSheet currentSpreadSheet = output.get(i);
-//                    outputText+="Title : "+currentSpreadSheet.getName()+"\nID : "+currentSpreadSheet.getId()+"\n\n\n";
-//                }
-//                debugView.setText(outputText);
             }
         }
 
@@ -440,7 +399,7 @@ public class MainActivity extends AppCompatActivity
         debugView = (TextView) findViewById(R.id.debugView);
         mCallApiButton = (Button) findViewById(R.id.button);
         spreadSheetList = (GridView) findViewById(R.id.spread_sheet_list);
-        nothingFoundMsg = (TextView) findViewById(R.id.nothing_found_msg);
+        nothingFoundMsg = (TextView) findViewById(R.id.no_sheet_found_msg);
 
         // Initialize credentials and service object.
         mCredential = GoogleAccountCredential.usingOAuth2(
@@ -449,5 +408,12 @@ public class MainActivity extends AppCompatActivity
 
         mProgress = new ProgressDialog(this);
         mProgress.setMessage("Please Wait....");
+        mProgress.setCancelable(false);
+    }
+
+    public void openActivity(View view)
+    {
+        Intent intent = new Intent(MainActivity.this,DynamicTabActivity.class);
+        startActivity(intent);
     }
 }
